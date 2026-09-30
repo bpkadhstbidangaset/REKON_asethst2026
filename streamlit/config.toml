@@ -1,7 +1,10 @@
-SHEET_ID = "ID_SHEET_ANDA"
-SHEET_NAME = "Sheet1"
-INSTANSI = "BPKPD KAB.HST"
-JUDUL_SITUS = "Pusat Unduhan Berkas REKON BMD 2026"
-SUBJUDUL = "Unduh dokumen, format, dan formulir resmi dengan mudah dan cepat."
-LOGO_URL = "Lambang_Kabupaten_Hulu_Sungai_Tengah.png"
-KONTAK = "bpkadhst.bidangaset@gmail.com"
+[theme]
+base = "light"
+primaryColor = "#0B3B8C"
+backgroundColor = "#F4F7FB"
+secondaryBackgroundColor = "#FFFFFF"
+textColor = "#1B2A41"
+font = "sans serif"
+
+[client]
+toolbarMode = "minimal"
