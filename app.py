@@ -1,4 +1,6 @@
+import base64
 import html
+import os
 import re
 from datetime import datetime
 from urllib.parse import quote
@@ -21,6 +23,7 @@ INSTANSI = secret("INSTANSI", "Pemerintah Daerah")
 JUDUL = secret("JUDUL_SITUS", "Pusat Unduhan Berkas")
 SUBJUDUL = secret("SUBJUDUL", "Unduh dokumen, format, dan formulir resmi dengan mudah dan cepat.")
 LOGO_URL = secret("LOGO_URL", "")
+LOGO_FILE = secret("LOGO_FILE", "")  # contoh: "streamlit/logo.png" (file di repository)
 KONTAK = secret("KONTAK", "")
 
 st.set_page_config(page_title=JUDUL, page_icon="📥", layout="wide")
@@ -144,6 +147,18 @@ def muat_data(sheet_id: str, sheet_name: str) -> pd.DataFrame:
     return df
 
 
+def logo_data_uri(path: str) -> str:
+    try:
+        with open(path, "rb") as f:
+            data = base64.b64encode(f.read()).decode()
+        ext = os.path.splitext(path)[1].lower().strip(".")
+        mime = {"png": "image/png", "jpg": "image/jpeg", "jpeg": "image/jpeg",
+                "svg": "image/svg+xml", "webp": "image/webp"}.get(ext, "image/png")
+        return f"data:{mime};base64,{data}"
+    except Exception:
+        return ""
+
+
 def cari_kolom(df, *alias):
     peta = {c.lower(): c for c in df.columns}
     for a in alias:
@@ -177,7 +192,8 @@ def kartu(nama, kategori, link):
 
 
 # ---------- Tampilan ----------
-logo = f'<img src="{html.escape(LOGO_URL, quote=True)}" alt="Logo">' if LOGO_URL else ""
+logo_src = (logo_data_uri(LOGO_FILE) if LOGO_FILE else "") or LOGO_URL
+logo = f'<img src="{html.escape(logo_src, quote=True)}" alt="Logo">' if logo_src else ""
 st.markdown(
     f'<div class="topbar">{logo}<div class="inst">{html.escape(INSTANSI)}</div></div>',
     unsafe_allow_html=True,
