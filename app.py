@@ -27,7 +27,7 @@ SUBJUDUL = secret("SUBJUDUL", "Unduh dokumen, format, dan formulir resmi dengan 
 LOGO_URL = secret("LOGO_URL", "")
 LOGO_FILE = secret("LOGO_FILE", "")  # contoh: "streamlit/logo.png" (file di repository)
 KONTAK = secret("KONTAK", "")
-TEMA = str(secret("TEMA", "biru")).strip().lower()  # biru | hijau | emerald | merah
+TEMA = str(secret("TEMA", "emerald")).strip().lower()  # biru | hijau | emerald | merah
 
 def ikon_halaman():
     try:
@@ -53,7 +53,7 @@ TEMA_WARNA = {
                   tint="#FDE8E8", bbg="#FFF6D6", btx="#8A6500", sub="#FAD7D7",
                   shadow="rgba(185,28,28,.25)"),
 }
-W = TEMA_WARNA.get(TEMA, TEMA_WARNA["biru"])
+W = TEMA_WARNA.get(TEMA, TEMA_WARNA["emerald"])
 
 # ---------- Gaya (tema portal pemerintahan) ----------
 st.markdown(
