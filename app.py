@@ -4,6 +4,7 @@ import os
 import re
 from datetime import datetime
 from urllib.parse import quote
+from PIL import Image
 
 import pandas as pd
 import streamlit as st
@@ -20,13 +21,20 @@ def secret(nama, default=""):
 SHEET_ID = secret("SHEET_ID")
 SHEET_NAME = secret("SHEET_NAME", "Sheet1")
 INSTANSI = secret("INSTANSI", "Pemerintah Daerah")
-JUDUL = secret("JUDUL_SITUS", "Pusat Unduhan Berkas")
+JUDUL = secret("JUDUL_SITUS", "Berkas BMD Kab. HST 2026")
 SUBJUDUL = secret("SUBJUDUL", "Unduh dokumen, format, dan formulir resmi dengan mudah dan cepat.")
 LOGO_URL = secret("LOGO_URL", "")
 LOGO_FILE = secret("LOGO_FILE", "")  # contoh: "streamlit/logo.png" (file di repository)
 KONTAK = secret("KONTAK", "")
 
-st.set_page_config(page_title=JUDUL, page_icon="📥", layout="wide")
+def ikon_halaman():
+    try:
+        return Image.open(LOGO_FILE or "logo.png")
+    except Exception:
+        return "📥"
+
+
+st.set_page_config(page_title=JUDUL, page_icon=ikon_halaman(), layout="wide")
 
 # ---------- Gaya (tema portal pemerintahan) ----------
 st.markdown(
