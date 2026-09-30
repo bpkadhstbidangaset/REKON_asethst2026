@@ -4,10 +4,11 @@ import os
 import re
 from datetime import datetime
 from urllib.parse import quote
-from PIL import Image
 
 import pandas as pd
 import streamlit as st
+import streamlit.components.v1 as components
+from PIL import Image
 
 
 # ---------- Konfigurasi (dari Streamlit Secrets) ----------
@@ -21,11 +22,12 @@ def secret(nama, default=""):
 SHEET_ID = secret("SHEET_ID")
 SHEET_NAME = secret("SHEET_NAME", "Sheet1")
 INSTANSI = secret("INSTANSI", "Pemerintah Daerah")
-JUDUL = secret("JUDUL_SITUS", "Berkas BMD Kab. HST 2026")
+JUDUL = secret("JUDUL_SITUS", "Pusat Unduhan Berkas")
 SUBJUDUL = secret("SUBJUDUL", "Unduh dokumen, format, dan formulir resmi dengan mudah dan cepat.")
 LOGO_URL = secret("LOGO_URL", "")
 LOGO_FILE = secret("LOGO_FILE", "")  # contoh: "streamlit/logo.png" (file di repository)
 KONTAK = secret("KONTAK", "")
+TEMA = str(secret("TEMA", "biru")).strip().lower()  # biru | hijau | emerald | merah
 
 def ikon_halaman():
     try:
@@ -35,6 +37,23 @@ def ikon_halaman():
 
 
 st.set_page_config(page_title=JUDUL, page_icon=ikon_halaman(), layout="wide")
+
+# ---------- Tema warna ----------
+TEMA_WARNA = {
+    "biru": dict(navy="#0B3B8C", dark="#072A66", mid="#1E5BC6", gold="#F2B705", bg="#F4F7FB",
+                 tint="#E8F0FD", bbg="#FFF6D6", btx="#8A6500", sub="#D6E2F7",
+                 shadow="rgba(11,59,140,.25)"),
+    "hijau": dict(navy="#0B6B3A", dark="#064E2A", mid="#1FA35C", gold="#F2B705", bg="#F2F8F4",
+                  tint="#E3F4EA", bbg="#FFF6D6", btx="#8A6500", sub="#D4F0DF",
+                  shadow="rgba(11,107,58,.25)"),
+    "emerald": dict(navy="#047857", dark="#064E3B", mid="#10B981", gold="#F59E0B", bg="#F0FAF6",
+                    tint="#D1FAE5", bbg="#FEF3C7", btx="#92400E", sub="#D1FAE5",
+                    shadow="rgba(4,120,87,.25)"),
+    "merah": dict(navy="#B91C1C", dark="#7F1212", mid="#E0413F", gold="#F2B705", bg="#FBF5F5",
+                  tint="#FDE8E8", bbg="#FFF6D6", btx="#8A6500", sub="#FAD7D7",
+                  shadow="rgba(185,28,28,.25)"),
+}
+W = TEMA_WARNA.get(TEMA, TEMA_WARNA["biru"])
 
 # ---------- Gaya (tema portal pemerintahan) ----------
 st.markdown(
@@ -63,9 +82,9 @@ html, body, [class*="css"], .stApp { font-family: 'Inter', sans-serif; }
 
 /* Hero */
 .hero {
-  background: linear-gradient(120deg, var(--navy-dark) 0%, var(--navy) 60%, #1E5BC6 100%);
+  background: linear-gradient(120deg, var(--navy-dark) 0%, var(--navy) 60%, var(--mid) 100%);
   border-radius: 18px; padding: 44px 40px; color:#fff; position:relative; overflow:hidden;
-  box-shadow: 0 10px 30px rgba(11,59,140,.25);
+  box-shadow: 0 10px 30px var(--shadow);
 }
 .hero::after {
   content:""; position:absolute; right:-60px; top:-60px; width:260px; height:260px;
@@ -78,7 +97,7 @@ html, body, [class*="css"], .stApp { font-family: 'Inter', sans-serif; }
 .hero .tag { display:inline-block; background:rgba(242,183,5,.18); color:var(--gold);
   padding:4px 12px; border-radius:999px; font-size:.78rem; font-weight:600; margin-bottom:14px; }
 .hero h1 { color:#fff; font-size:2.2rem; font-weight:800; margin:0 0 8px 0; line-height:1.2; padding:0; }
-.hero p { color:#D6E2F7; font-size:1.02rem; margin:0; max-width:620px; }
+.hero p { color:var(--hero-sub); font-size:1.02rem; margin:0; max-width:620px; }
 
 /* Statistik */
 .stats { display:flex; gap:14px; margin:18px 0 6px 0; flex-wrap:wrap; }
@@ -102,10 +121,10 @@ div[data-testid="stTextInput"] label, div[data-testid="stSelectbox"] label { fon
 }
 .card:hover { transform:translateY(-3px); box-shadow:0 12px 26px rgba(15,40,90,.12); border-top-color:var(--gold); }
 .card .head { display:flex; gap:14px; align-items:flex-start; }
-.ico { flex:0 0 44px; height:44px; border-radius:11px; background:#E8F0FD; color:var(--navy);
+.ico { flex:0 0 44px; height:44px; border-radius:11px; background:var(--tint); color:var(--navy);
   display:flex; align-items:center; justify-content:center; }
 .card h3 { margin:0; padding:0; font-size:1rem; font-weight:700; color:var(--text); line-height:1.4; }
-.badge { display:inline-block; background:#FFF6D6; color:#8A6500; font-size:.72rem; font-weight:600;
+.badge { display:inline-block; background:var(--badge-bg); color:var(--badge-text); font-size:.72rem; font-weight:600;
   padding:2px 10px; border-radius:999px; margin-bottom:6px; }
 .btn {
   display:flex; align-items:center; justify-content:center; gap:8px; text-decoration:none !important;
@@ -113,6 +132,15 @@ div[data-testid="stTextInput"] label, div[data-testid="stSelectbox"] label { fon
   font-weight:600; font-size:.9rem; transition:background .15s;
 }
 .btn:hover { background:var(--navy-dark); }
+.actions { display:flex; gap:10px; }
+.actions .btn { flex:1; }
+.btn-alt { background:#fff; color:var(--navy) !important; border:1.5px solid var(--navy); }
+.btn-alt:hover { background:var(--tint); }
+.pv-head { display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap;
+  margin-bottom:10px; }
+.pv-head h3 { margin:0; font-size:1.05rem; font-weight:700; color:var(--text); }
+.pv-head .actions { flex:0 0 auto; }
+.pv-head .btn { padding:8px 16px; }
 
 /* Kosong & footer */
 .kosong { text-align:center; background:#fff; border:1px dashed var(--line); border-radius:14px;
@@ -125,6 +153,15 @@ div[data-testid="stTextInput"] label, div[data-testid="stSelectbox"] label { fon
 }
 </style>
 """,
+    unsafe_allow_html=True,
+)
+
+st.markdown(
+    "<style>:root{"
+    f"--navy:{W['navy']};--navy-dark:{W['dark']};--mid:{W['mid']};--gold:{W['gold']};"
+    f"--bg:{W['bg']};--tint:{W['tint']};--badge-bg:{W['bbg']};--badge-text:{W['btx']};"
+    f"--hero-sub:{W['sub']};--shadow:{W['shadow']};"
+    "}</style>",
     unsafe_allow_html=True,
 )
 
@@ -186,15 +223,40 @@ def link_unduh(link: str):
     return link, "Buka Tautan"
 
 
+def id_file(link: str) -> str:
+    """ID file Drive (kosong jika folder atau bukan link Drive)."""
+    if "/folders/" in link:
+        return ""
+    for pola in (r"/d/([a-zA-Z0-9_-]+)", r"[?&]id=([a-zA-Z0-9_-]+)"):
+        m = re.search(pola, link)
+        if m:
+            return m.group(1)
+    return ""
+
+
+ICON_EYE = (
+    '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" '
+    'stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">'
+    '<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>'
+)
+
+
 def kartu(nama, kategori, link):
     url, label = link_unduh(link)
+    fid = id_file(link)
     badge = f'<span class="badge">{html.escape(kategori)}</span><br>' if kategori else ""
+    preview = (
+        f'<a class="btn btn-alt" href="?preview={fid}" target="_self">{ICON_EYE}Preview</a>'
+        if fid
+        else ""
+    )
     return (
         '<div class="card">'
         f'<div class="head"><div class="ico">{ICON_FILE}</div>'
         f'<div>{badge}<h3>{html.escape(nama)}</h3></div></div>'
+        f'<div class="actions">{preview}'
         f'<a class="btn" href="{html.escape(url, quote=True)}" target="_blank" rel="noopener">'
-        f"{ICON_DOWN}{label}</a>"
+        f"{ICON_DOWN}{label}</a></div>"
         "</div>"
     )
 
@@ -243,6 +305,26 @@ data = pd.DataFrame(
 )
 data = data[(data["nama"] != "") & (data["link"] != "")].reset_index(drop=True)
 daftar_kategori = sorted({k for k in data["kategori"] if k})
+
+# ---------- Panel preview ----------
+param = st.query_params.get("preview", "")
+if param:
+    cocok = data[data["link"].apply(id_file) == param]
+    if cocok.empty:
+        st.warning("Berkas untuk preview tidak ditemukan.")
+    else:
+        baris = cocok.iloc[0]
+        url_unduh, _ = link_unduh(baris["link"])
+        with st.container(border=True):
+            st.markdown(
+                f'<div class="pv-head"><h3>{html.escape(baris["nama"])}</h3>'
+                f'<div class="actions">'
+                f'<a class="btn" href="{html.escape(url_unduh, quote=True)}" target="_blank" '
+                f'rel="noopener">{ICON_DOWN}Unduh</a>'
+                f'<a class="btn btn-alt" href="?" target="_self">Tutup</a></div></div>',
+                unsafe_allow_html=True,
+            )
+            components.iframe(f"https://drive.google.com/file/d/{param}/preview", height=620)
 
 st.markdown(
     f'<div class="stats"><div class="stat"><b>{len(data)}</b><span>Total berkas</span></div>'
